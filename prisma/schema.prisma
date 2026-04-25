@@ -1,0 +1,284 @@
+// Daruma Studio — Portal de Clientes
+// Schema completo. Multi-tenant con Organization (Daruma) + Client orgs.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ================== ORG & USERS ==================
+
+enum Role {
+  SUPER_ADMIN     // Daruma owner (Ren)
+  TEAM_MEMBER     // Daruma team
+  CLIENT_PRIMARY  // Punto de contacto del cliente
+  CLIENT_VIEWER   // Otros stakeholders del cliente
+}
+
+model Organization {
+  id          String    @id @default(cuid())
+  slug        String    @unique          // p.ej. "acme-co"
+  name        String
+  isAgency    Boolean   @default(false)  // true sólo para Daruma
+  logoUrl     String?
+  brandColor  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  users       User[]
+  projects    Project[]
+}
+
+model User {
+  id              String        @id @default(cuid())
+  email           String        @unique
+  name            String?
+  avatarUrl       String?
+  role            Role
+  locale          String        @default("es") // es | en
+  organizationId  String
+  organization    Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  lastLoginAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  messagesSent    Message[]     @relation("Sender")
+  notifications   Notification[]
+  reportDownloads ReportDownload[]
+
+  @@index([organizationId])
+}
+
+// ================== PROJECTS & PHASES ==================
+
+enum ServiceType {
+  BRANDING
+  WEB_DESIGN
+  META_ADS
+  CONTENT
+  STRATEGY
+}
+
+enum ProjectStatus {
+  PLANNING
+  IN_PROGRESS
+  REVIEW
+  ON_HOLD
+  COMPLETED
+  ARCHIVED
+}
+
+model Project {
+  id              String         @id @default(cuid())
+  name            String
+  slug            String
+  service         ServiceType
+  status          ProjectStatus  @default(IN_PROGRESS)
+  description     String?
+  coverColor      String?
+  startDate       DateTime
+  targetEndDate   DateTime?
+  actualEndDate   DateTime?
+  organizationId  String
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  phases          Phase[]
+  deliverables    Deliverable[]
+  posts           Post[]
+  campaigns       AdCampaign[]
+  reports         Report[]
+  messages        Message[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId, status])
+}
+
+enum PhaseStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  BLOCKED
+}
+
+model Phase {
+  id          String       @id @default(cuid())
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name        String       // "Discovery", "Diseño", "Desarrollo", "QA", "Lanzamiento"
+  order       Int
+  status      PhaseStatus  @default(PENDING)
+  startedAt   DateTime?
+  completedAt DateTime?
+  notes       String?
+
+  deliverables Deliverable[]
+
+  @@index([projectId, order])
+}
+
+model Deliverable {
+  id           String     @id @default(cuid())
+  projectId    String
+  project      Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  phaseId      String?
+  phase        Phase?     @relation(fields: [phaseId], references: [id], onDelete: SetNull)
+  title        String
+  description  String?
+  fileUrl      String?
+  thumbnailUrl String?
+  isApproved   Boolean    @default(false)
+  uploadedAt   DateTime   @default(now())
+
+  @@index([projectId])
+}
+
+// ================== CONTENT (Calendar / Posts) ==================
+
+enum PostStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  REJECTED
+  NEEDS_REVISION
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  FACEBOOK
+  TIKTOK
+  LINKEDIN
+  X
+}
+
+model Post {
+  id          String          @id @default(cuid())
+  projectId   String
+  project     Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  caption     String
+  mediaUrl    String?
+  thumbUrl    String?
+  platform    SocialPlatform
+  scheduledAt DateTime
+  publishedAt DateTime?
+  status      PostStatus      @default(DRAFT)
+  externalUrl String?
+
+  @@index([projectId, scheduledAt])
+}
+
+// ================== ADS ==================
+
+enum CampaignStatus {
+  ACTIVE
+  PAUSED
+  COMPLETED
+  DRAFT
+}
+
+model AdCampaign {
+  id            String          @id @default(cuid())
+  projectId     String
+  project       Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name          String
+  metaCampaignId String?        @unique
+  status        CampaignStatus  @default(ACTIVE)
+  objective     String?
+  budgetCents   Int?
+  startDate     DateTime
+  endDate       DateTime?
+
+  metrics       AdMetric[]
+
+  @@index([projectId])
+}
+
+model AdMetric {
+  id            String      @id @default(cuid())
+  campaignId    String
+  campaign      AdCampaign  @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  date          DateTime
+  impressions   Int         @default(0)
+  clicks        Int         @default(0)
+  spendCents    Int         @default(0)
+  reach         Int         @default(0)
+  conversions   Int         @default(0)
+  ctr           Float       @default(0)
+  cpcCents      Int         @default(0)
+
+  @@unique([campaignId, date])
+}
+
+// ================== REPORTS ==================
+
+model Report {
+  id           String          @id @default(cuid())
+  projectId    String
+  project      Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title        String
+  periodLabel  String          // "Enero 2026"
+  periodStart  DateTime
+  periodEnd    DateTime
+  fileUrl      String          // PDF en Supabase Storage
+  publishedAt  DateTime        @default(now())
+
+  downloads    ReportDownload[]
+
+  @@index([projectId, publishedAt])
+}
+
+model ReportDownload {
+  id          String    @id @default(cuid())
+  reportId    String
+  report      Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  downloadedAt DateTime @default(now())
+
+  @@index([reportId])
+}
+
+// ================== MESSAGES & NOTIFICATIONS ==================
+
+model Message {
+  id         String    @id @default(cuid())
+  projectId  String?
+  project    Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  senderId   String
+  sender     User      @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
+  body       String
+  attachmentUrl String?
+  createdAt  DateTime  @default(now())
+  readAt     DateTime?
+
+  @@index([projectId, createdAt])
+  @@index([senderId])
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+  PHASE_UPDATE
+  DELIVERABLE_READY
+  REPORT_PUBLISHED
+  POST_NEEDS_APPROVAL
+}
+
+model Notification {
+  id         String            @id @default(cuid())
+  userId     String
+  user       User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type       NotificationType
+  title      String
+  body       String?
+  linkPath   String?
+  isRead     Boolean           @default(false)
+  createdAt  DateTime          @default(now())
+
+  @@index([userId, isRead, createdAt])
+}

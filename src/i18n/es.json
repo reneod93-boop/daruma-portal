@@ -1,0 +1,46 @@
+{
+  "brand": {
+    "tagline": "Branding · Web · Meta Ads"
+  },
+  "login": {
+    "welcome": "Bienvenido de vuelta",
+    "subtitle": "Accede a tu portal de cliente",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "submit": "Entrar al portal",
+    "forgot": "¿Olvidaste tu contraseña?"
+  },
+  "nav": {
+    "dashboard": "Panel",
+    "projects": "Proyectos",
+    "content": "Contenido",
+    "reports": "Reportes",
+    "messages": "Mensajes",
+    "logout": "Cerrar sesión"
+  },
+  "dashboard": {
+    "greeting": "Hola",
+    "summary": "Resumen de tus proyectos",
+    "active": "Proyectos activos",
+    "phase_label": "Fase actual",
+    "view": "Ver proyecto"
+  },
+  "phases": {
+    "discovery": "Descubrimiento",
+    "design": "Diseño",
+    "development": "Desarrollo",
+    "review": "Revisión",
+    "launch": "Lanzamiento",
+    "completed": "Completado"
+  },
+  "reports": {
+    "title": "Reportes mensuales",
+    "subtitle": "Descarga los informes de cada periodo",
+    "download": "Descargar PDF"
+  },
+  "messages": {
+    "title": "Mensajes con el equipo",
+    "placeholder": "Escribe un mensaje...",
+    "send": "Enviar"
+  }
+}

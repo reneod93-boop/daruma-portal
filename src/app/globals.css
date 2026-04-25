@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --daruma-red: #E94256;
+  --daruma-slate: #364550;
+  --daruma-cream: #F5F1EA;
+  --daruma-ink: #1F2A33;
+  --daruma-line: #E5DED2;
+}
+
+html, body {
+  background: var(--daruma-cream);
+  color: var(--daruma-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-soft bg-daruma-red px-5 py-3 font-medium text-white shadow-soft transition hover:bg-[#d8384c] focus:outline-none focus:ring-2 focus:ring-daruma-red/40;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-soft border border-daruma-line bg-white px-5 py-3 font-medium text-daruma-slate transition hover:bg-daruma-cream;
+  }
+  .card {
+    @apply rounded-card bg-white p-6 shadow-soft border border-daruma-line/60;
+  }
+  .h-display {
+    @apply font-serif text-3xl md:text-4xl text-daruma-slate;
+  }
+  .h-card {
+    @apply font-serif text-xl text-daruma-slate;
+  }
+  .label {
+    @apply text-xs uppercase tracking-wider text-daruma-slate-soft;
+  }
+}

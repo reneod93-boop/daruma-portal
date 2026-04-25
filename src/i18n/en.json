@@ -1,0 +1,46 @@
+{
+  "brand": {
+    "tagline": "Branding · Web · Meta Ads"
+  },
+  "login": {
+    "welcome": "Welcome back",
+    "subtitle": "Access your client portal",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Enter the portal",
+    "forgot": "Forgot your password?"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "content": "Content",
+    "reports": "Reports",
+    "messages": "Messages",
+    "logout": "Sign out"
+  },
+  "dashboard": {
+    "greeting": "Hello",
+    "summary": "Your projects at a glance",
+    "active": "Active projects",
+    "phase_label": "Current phase",
+    "view": "View project"
+  },
+  "phases": {
+    "discovery": "Discovery",
+    "design": "Design",
+    "development": "Development",
+    "review": "Review",
+    "launch": "Launch",
+    "completed": "Completed"
+  },
+  "reports": {
+    "title": "Monthly reports",
+    "subtitle": "Download reports for each period",
+    "download": "Download PDF"
+  },
+  "messages": {
+    "title": "Messages with the team",
+    "placeholder": "Type a message...",
+    "send": "Send"
+  }
+}
