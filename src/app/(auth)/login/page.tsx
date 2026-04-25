@@ -4,16 +4,33 @@ import { useState } from 'react';
 import { DarumaLogo } from '@/components/portal/DarumaLogo';
 import { getDict, type Locale } from '@/lib/i18n';
 import { useRouter } from 'next/navigation';
+import { createSupabaseBrowser } from '@/lib/supabase';
 
 export default function LoginPage() {
   const [locale, setLocale] = useState<Locale>('es');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const t = getDict(locale);
   const router = useRouter();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // TODO: Wire up Supabase Auth here
+    setError(null);
+    setLoading(true);
+    const supabase = createSupabaseBrowser();
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    if (authError) {
+      setError(authError.message);
+      setLoading(false);
+      return;
+    }
     router.push('/dashboard');
+    router.refresh();
   }
 
   return (
@@ -43,6 +60,8 @@ export default function LoginPage() {
             <input
               type="email"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-soft border border-daruma-line bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-daruma-red/30"
             />
           </div>
@@ -51,11 +70,20 @@ export default function LoginPage() {
             <input
               type="password"
               required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-soft border border-daruma-line bg-white px-4 py-3 focus:outline-none focus:ring-2 focus:ring-daruma-red/30"
             />
           </div>
-          <button type="submit" className="btn-primary w-full">
-            {t.login.submit}
+          {error && (
+            <p className="text-sm text-daruma-red text-center">{error}</p>
+          )}
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? '…' : t.login.submit}
           </button>
           <a href="#" className="block text-center text-sm text-daruma-slate-soft hover:text-daruma-red">
             {t.login.forgot}
